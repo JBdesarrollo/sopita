@@ -2,152 +2,134 @@
   <v-app-bar :elevation="2">
     <v-app-bar-title>Sopita instantánea</v-app-bar-title>
   </v-app-bar>
-      <div id="container">
-        <div class="tabla">
-          <table>
-            <tbody>
-            <tr v-for="(fila, rowIndex) in tabla" :key="rowIndex">
-              <td
-                v-for="(letra, colIndex) in fila"
-                :key="colIndex"
-                :style="{ backgroundColor: colores[rowIndex][colIndex] }"
-                @click="cambiarColor(rowIndex, colIndex)"
-              >
-                {{ letra || 'X' }}
-              </td>
-            </tr>
-            </tbody>
-          </table>
-        </div>
-        <div id="lista">
-          <ul>
-            <li
-              v-for="(palabra, index) in listaPalabras"
-              :key="index"
-              :style="{
-    textDecoration: palabra.completada ? 'line-through' : 'none',
-    color: palabra.completada ? 'red' : 'black',
-    listStyle: 'none', fontSize: '3rem',
-  }"
-            >
-              {{ palabra.text }}
-            </li>
-          </ul>
-        </div>
-
-      </div>
-
+  <div id="container">
+    <div class="tabla">
+      <table>
+        <tbody>
+        <tr v-for="(fila, rowIndex) in tabla" :key="rowIndex">
+          <td
+            v-for="(letra, colIndex) in fila"
+            :key="colIndex"
+            :style="{ backgroundColor: colores[rowIndex][colIndex] }"
+            @click="cambiarColor(rowIndex, colIndex)"
+          >
+            {{ letra || 'X' }}
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="lista">
+      <ul>
+        <li
+          v-for="(palabra, index) in listaPalabras"
+          :key="index"
+          :style="{
+            textDecoration: palabra.completada ? 'line-through' : 'none',
+            color: palabra.completada ? 'red' : 'black',
+            listStyle: 'none',
+            fontSize: '3rem'
+          }"
+        >
+          {{ palabra.text }}
+        </li>
+      </ul>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { palabras } from '../diccionario.js';
-const listaPalabras = ref([]); // Cambia esto por un array de objetos
+
+const listaPalabras = ref([]);
 const size = 20;
 const direcciones = [
   { dx: 1, dy: 0 },  // Horizontal
   { dx: 0, dy: 1 },  // Vertical
   { dx: 1, dy: 1 },  // Diagonal (abajo derecha)
-  { dx: -1, dy: 1 }, // Diagonal (arriba derecha)
-  { dx: 1, dy: -1 }, // Diagonal (abajo izquierda)
-  { dx: -1, dy: 0 }, // Horizontal (invertido)
-  { dx: 0, dy: -1 }, // Vertical (invertido)
-  { dx: -1, dy: -1 } // Diagonal (arriba izquierda)
+  { dx: -1, dy: 1 }  // Diagonal (arriba derecha)
 ];
-
 const tabla = ref(Array.from({ length: size }, () => Array(size).fill('')));
-const colores = ref(Array.from({ length: size }, () => Array(size).fill(''))); // Inicializa colores
-// Lista que almacena las coordenadas de cada palabra
+const colores = ref(Array.from({ length: size }, () => Array(size).fill('')));
 const palabrasCoordenadas = ref([]);
+
 onMounted(() => {
   cargarDiccionario();
 });
+
 function cargarDiccionario() {
   const temp = [];
-  while (temp.length < 20) {
+  while (temp.length < 15) {
     const randomIndex = Math.floor(Math.random() * palabras.length);
     const randomWord = palabras[randomIndex].toUpperCase();
     if (!temp.some(item => item.text === randomWord)) {
-      temp.push({ text: randomWord, completada: false }); // Almacena el estado
-      colocarPalabra(randomWord);
+      temp.push({ text: randomWord, completada: false });
+      colocarPalabraSinCruces(randomWord);
     }
   }
   listaPalabras.value = temp;
-  // Rellenar los espacios vacíos con letras aleatorias
   llenarEspaciosConLetrasAleatorias();
 }
 
-
-function colocarPalabra(palabra) {
+function colocarPalabraSinCruces(palabra) {
   const longitud = palabra.length;
-
-  // Intentar colocar la palabra en la tabla
   for (let intentos = 0; intentos < 100; intentos++) {
     const direccion = direcciones[Math.floor(Math.random() * direcciones.length)];
     const startX = Math.floor(Math.random() * size);
     const startY = Math.floor(Math.random() * size);
-
     const endX = startX + direccion.dx * (longitud - 1);
     const endY = startY + direccion.dy * (longitud - 1);
-
     if (endX >= 0 && endX < size && endY >= 0 && endY < size) {
       let espacioLibre = true;
       const coordenadasPalabra = [];
-
       for (let i = 0; i < longitud; i++) {
         const x = startX + direccion.dx * i;
         const y = startY + direccion.dy * i;
-        if (tabla.value[y][x] !== '' && tabla.value[y][x] !== palabra[i]) {
+        if (tabla.value[y][x] !== '') {
           espacioLibre = false;
           break;
         }
-        coordenadasPalabra.push({ x, y }); // Guardamos las coordenadas de la palabra
+        coordenadasPalabra.push({ x, y });
       }
-
       if (espacioLibre) {
         for (let i = 0; i < longitud; i++) {
           const x = startX + direccion.dx * i;
           const y = startY + direccion.dy * i;
           tabla.value[y][x] = palabra[i];
         }
-        palabrasCoordenadas.value.push(coordenadasPalabra); // Guardamos las coordenadas de la palabra
-        return true; // Palabra colocada con éxito
+        palabrasCoordenadas.value.push(coordenadasPalabra);
+        return true;
       }
     }
   }
-  return false; // No se pudo colocar la palabra
+  return false;
 }
 
 function cambiarColor(rowIndex, colIndex) {
-  // Verificar si la celda ya está marcada como "completada" (amarillo)
   const letraSeleccionada = colores.value[rowIndex][colIndex];
 
-  // Si ya está completada (amarillo), no hacemos nada
   if (letraSeleccionada === 'yellow') {
     return;
   }
 
-  // Si la letra está seleccionada (lightgreen), la deseleccionamos
   if (letraSeleccionada === 'lightgreen') {
     colores.value[rowIndex][colIndex] = '';
   } else {
-    // Si no está seleccionada, la seleccionamos
     colores.value[rowIndex][colIndex] = 'lightgreen';
   }
 
-  verificarPalabraCompleta(); // Verificar si una palabra se ha completado
+  verificarPalabraCompleta();
 }
-
 
 function verificarPalabraCompleta() {
   palabrasCoordenadas.value.forEach((coordenadas, index) => {
     const todasSeleccionadas = coordenadas.every(({ x, y }) => colores.value[y][x] === 'lightgreen');
-
     if (todasSeleccionadas) {
       coordenadas.forEach(({ x, y }) => {
-        colores.value[y][x] = 'yellow'; // Cambia el color a amarillo
+        colores.value[y][x] = 'yellow';
       });
-      listaPalabras.value[index].completada = true; // Marca la palabra como completada
+      listaPalabras.value[index].completada = true;
     }
   });
 }
@@ -159,19 +141,18 @@ function letraAleatoria() {
 }
 
 function llenarEspaciosConLetrasAleatorias() {
-  for (let rowIndex = 0; rowIndex < size; rowIndex++) {
+  /*for (let rowIndex = 0; rowIndex < size; rowIndex++) {
     for (let colIndex = 0; colIndex < size; colIndex++) {
       if (tabla.value[rowIndex][colIndex] === '') {
         tabla.value[rowIndex][colIndex] = letraAleatoria();
       }
     }
-  }
+  }*/
+  return;
 }
-
 </script>
 
 <style scoped>
-
 #container {
   display: flex;
   flex-direction: row;
@@ -179,46 +160,40 @@ function llenarEspaciosConLetrasAleatorias() {
   color: black;
   font-weight: bolder;
 }
-
 #lista {
   width: 100%;
   background-color: white;
   padding: 20px;
 }
-
 table {
-  width: 40vw; /* Ajusta el tamaño en relación al ancho de la pantalla */
-  height: 40vw; /* Forza la misma altura que el ancho para mantenerlo cuadrado */
+  width: 40vw;
+  height: 40vw;
   margin: auto;
   border: 1px solid black;
-  aspect-ratio: 1 / 1; /* Mantén la relación de aspecto 1:1 */
+  aspect-ratio: 1 / 1;
 }
-
 td {
-  width: calc(40vw / 20); /* Asegúrate de que cada celda tenga una relación constante */
+  width: calc(40vw / 20);
   height: calc(40vw / 20);
   border: 1px solid #ccc;
   text-align: center;
   vertical-align: middle;
-  cursor: pointer; /* Cambia el cursor al pasar sobre la celda */
+  cursor: pointer;
   font-size: 2rem;
   font-weight: bold;
 }
-
-#lista{
+#lista {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  & ul{
-    margin: auto;
-  }
 }
-
+#lista ul {
+  margin: auto;
+}
 .tabla {
   margin-top: 40px;
   padding: 30px;
 }
-
 @media (max-width: 768px) {
   #container {
     flex-direction: column;
@@ -238,19 +213,17 @@ td {
     margin-bottom: 10px;
   }
   table {
-    width: 90vw; /* Usa el 90% del ancho de la vista para la tabla */
-    height: 90vw; /* Mantén la altura igual al ancho para que siga siendo cuadrada */
-    max-height: 90vh; /* Asegura que la altura máxima no supere el 90% de la altura de la vista */
+    width: 90vw;
+    height: 90vw;
+    max-height: 90vh;
     margin: auto;
     border: 1px solid black;
   }
   td {
-    width: calc(90vw / 20); /* Ajusta el tamaño de las celdas según el tamaño de la tabla */
+    width: calc(90vw / 20);
     height: calc(90vw / 20);
     font-size: 1rem;
     font-weight: bold;
   }
 }
-
-
 </style>
