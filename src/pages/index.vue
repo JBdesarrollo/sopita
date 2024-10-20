@@ -1,5 +1,7 @@
 <template>
-
+  <v-app-bar :elevation="2">
+    <v-app-bar-title>Sopita instantánea</v-app-bar-title>
+  </v-app-bar>
       <div id="container">
         <div class="tabla">
           <table>
@@ -60,7 +62,6 @@ const palabrasCoordenadas = ref([]);
 onMounted(() => {
   cargarDiccionario();
 });
-
 function cargarDiccionario() {
   const temp = [];
   while (temp.length < 20) {
@@ -170,20 +171,18 @@ function llenarEspaciosConLetrasAleatorias() {
 </script>
 
 <style scoped>
+
 #container {
   display: flex;
   flex-direction: row;
-}
-
-#sopa {
-  width: 100%;
-  background-color: burlywood;
-  padding: 20px;
+  background-color: white;
+  color: black;
+  font-weight: bolder;
 }
 
 #lista {
   width: 100%;
-  background-color: lavender;
+  background-color: white;
   padding: 20px;
 }
 
@@ -206,6 +205,15 @@ td {
   font-weight: bold;
 }
 
+#lista{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  & ul{
+    margin: auto;
+  }
+}
+
 .tabla {
   margin-top: 40px;
   padding: 30px;
@@ -215,41 +223,34 @@ td {
   #container {
     flex-direction: column;
   }
-
-  #sopa {
-    width: 100%;
-    background-color: burlywood;
-    padding: 5px;
-  }
-
   #lista {
     width: 100%;
-    background-color: lavender;
     padding: 5px;
+    padding-bottom: 30px;
   }
-  li{
+  li {
     font-size: 1rem !important;
+  }
+  .tabla {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
   }
   table {
     width: 90vw; /* Usa el 90% del ancho de la vista para la tabla */
-    height: 90vw; /* Asegúrate de que la tabla tenga la misma altura que el ancho */
+    height: 90vw; /* Mantén la altura igual al ancho para que siga siendo cuadrada */
+    max-height: 90vh; /* Asegura que la altura máxima no supere el 90% de la altura de la vista */
     margin: auto;
     border: 1px solid black;
-    aspect-ratio: 1 / 1; /* Mantén la relación de aspecto 1:1 */
   }
-
   td {
     width: calc(90vw / 20); /* Ajusta el tamaño de las celdas según el tamaño de la tabla */
     height: calc(90vw / 20);
     font-size: 1rem;
     font-weight: bold;
-
-  }
-
-  .tabla {
-    padding: 5px;
-    margin-bottom: 10px;
   }
 }
+
 
 </style>
