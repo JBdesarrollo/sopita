@@ -141,13 +141,13 @@ function letraAleatoria() {
 }
 
 function llenarEspaciosConLetrasAleatorias() {
-  /*for (let rowIndex = 0; rowIndex < size; rowIndex++) {
+  for (let rowIndex = 0; rowIndex < size; rowIndex++) {
     for (let colIndex = 0; colIndex < size; colIndex++) {
       if (tabla.value[rowIndex][colIndex] === '') {
         tabla.value[rowIndex][colIndex] = letraAleatoria();
       }
     }
-  }*/
+  }
   return;
 }
 </script>
